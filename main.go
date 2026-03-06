@@ -34,7 +34,7 @@ func printLogo() {
    ▀    ▀    ▀       ▀    ▀       ▀    ▀       ▀    ▀    ▀  
          ▀             ▀             ▀             ▀      
 
-    Stealth Backup - Your files are mine now! By bI8d0
+ Stealth Backup - Your files are mine now! By bI8d0 v1.0
 `
 	fmt.Println(logo)
 }
