@@ -81,21 +81,33 @@ go run build.go
 
 This will generate the following binaries inside the `build/` directory:
 
-| File | Platform |
-|---|---|
-| `build/evil-copy.exe` | Windows (amd64) |
-| `build/evil-copy` | Linux (amd64) |
+| File | Platform | Type |
+|---|---|---|
+| `build/evil-copy.exe` | Windows (amd64) | Normal (console) |
+| `build/ECPHidden.exe` | Windows (amd64) | Hidden (windowsgui) |
+| `build/evil-copy` | Linux (amd64) | Normal |
+| `build/ECPHidden` | Linux (amd64) | Hidden |
 
 ### Build manually for a specific platform
 
-**Windows:**
+**Windows (normal):**
 ```bash
 GOOS=windows GOARCH=amd64 go build -o build/evil-copy.exe main.go
 ```
 
-**Linux:**
+**Windows (hidden - windowsgui):**
+```bash
+GOOS=windows GOARCH=amd64 go build -ldflags="-H windowsgui" -o build/ECPHidden.exe main.go
+```
+
+**Linux (normal):**
 ```bash
 GOOS=linux GOARCH=amd64 go build -o build/evil-copy main.go
+```
+
+**Linux (hidden - no console):**
+```bash
+GOOS=linux GOARCH=amd64 go build -ldflags="-H windowsgui" -o build/ECPHidden main.go
 ```
 
 ---
@@ -146,8 +158,10 @@ Evil-Copy/
 ├── LICENSE               # MIT License
 ├── README.md             # Project documentation
 └── build/                # Compiled binaries (generated, git-ignored)
-    ├── evil-copy         # Linux binary
-    └── evil-copy.exe     # Windows binary
+    ├── evil-copy         # Linux binary (normal)
+    ├── evil-copy.exe     # Windows binary (normal)
+    ├── ECPHidden         # Linux binary (hidden)
+    └── ECPHidden.exe     # Windows binary (hidden - windowsgui)
 ```
 
 ---

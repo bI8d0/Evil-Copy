@@ -1,3 +1,5 @@
+//go:build ignore
+
 package main
 
 import (
@@ -44,6 +46,7 @@ func main() {
 }
 
 func buildForWindows(outputName, filename, currentDir string) error {
+
 	// Build for Windows
 	cmd := exec.Command("go", "build", "-o", outputName, filename)
 	cmd.Env = append(os.Environ(),
@@ -55,6 +58,20 @@ func buildForWindows(outputName, filename, currentDir string) error {
 	buildOutput, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("build error: %v\nOutput: %s", err, buildOutput)
+	}
+
+	// Build for Windows hidden
+	hiddenOutput := filepath.Join(filepath.Dir(outputName), "ECPHidden.exe")
+	cmdHidden := exec.Command("go", "build", "-ldflags=-H windowsgui", "-o", hiddenOutput, filename)
+	cmdHidden.Env = append(os.Environ(),
+		"GOOS=windows",
+		"GOARCH=amd64",
+	)
+	cmdHidden.Dir = currentDir
+
+	buildOutputHidden, err := cmdHidden.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("build error for Windows hidden: %v\nOutput: %s", err, buildOutputHidden)
 	}
 
 	fmt.Printf("Windows build completed.\n")
@@ -69,10 +86,13 @@ func buildForWindows(outputName, filename, currentDir string) error {
 
 func buildForOS(goos, outputName, filename string, currentDir string) error {
 	args := []string{"build", "-o", outputName}
+	hiddenOutput := filepath.Join(filepath.Dir(outputName), "ECPHidden")
+	argsHidden := []string{"build", "-ldflags=-H windowsgui", "-o", hiddenOutput}
 
 	// Add build tag to exclude Windows-specific code on Linux
 	if goos == "linux" {
 		args = append(args, "-tags", "!windows")
+		argsHidden = append(argsHidden, "-tags", "!windows")
 	}
 
 	args = append(args, filename)
@@ -89,6 +109,24 @@ func buildForOS(goos, outputName, filename string, currentDir string) error {
 	err := cmd.Run()
 	if err != nil {
 		return fmt.Errorf("build error for %s: %v", goos, err)
+	}
+
+	// Build for Linux hidden
+
+	argsHidden = append(argsHidden, filename)
+
+	cmdHidden := exec.Command("go", argsHidden...)
+	cmdHidden.Env = append(os.Environ(),
+		"GOOS="+goos,
+		"GOARCH=amd64",
+	)
+	cmdHidden.Dir = currentDir
+	cmdHidden.Stdout = os.Stdout
+	cmdHidden.Stderr = os.Stderr
+
+	errHidden := cmdHidden.Run()
+	if errHidden != nil {
+		return fmt.Errorf("build error for %s hidden: %v", goos, errHidden)
 	}
 
 	fmt.Printf("Build for %s completed.\n", goos)
