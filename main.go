@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"os/user"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -102,29 +103,24 @@ func watchLinuxDrives(done chan bool) {
 	}
 	defer watcher.Close()
 
-	addDirAndSubdirsToWatcher := func(dir string) error {
-		log.Printf("Adding directory to watch: %s\n", dir)
-		return filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-			if err != nil {
-				log.Printf("Error accessing path %s: %v\n", path, err)
-				return nil
-			}
-			if info.IsDir() {
-				err = watcher.Add(path)
-				if err != nil {
-					log.Printf("Error watching path %s: %v\n", path, err)
-				} else {
-					log.Printf("Now watching: %s\n", path)
-				}
-			}
-			return nil
-		})
-	}
-
-	err = addDirAndSubdirsToWatcher(watchPath)
+	// Get current user dynamically
+	currentUser, err := user.Current()
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// On Linux, USB drives are mounted under /media/<user>/ or /run/media/<user>/
+	mountBase := filepath.Join("/media", currentUser.Username)
+	// If not found, fallback to /run/media/<user> (Fedora/Arch)
+	if _, err := os.Stat(mountBase); os.IsNotExist(err) {
+		mountBase = filepath.Join("/run/media", currentUser.Username)
+	}
+
+	err = watcher.Add(mountBase)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("Watching mount point: %s\n", mountBase)
 
 	go func() {
 		for {
@@ -135,11 +131,6 @@ func watchLinuxDrives(done chan bool) {
 				}
 				log.Printf("Event: %s\n", event)
 				if event.Op&fsnotify.Create == fsnotify.Create || event.Op&fsnotify.Write == fsnotify.Write {
-					if info, err := os.Stat(event.Name); err == nil && info.IsDir() {
-						log.Printf("New directory detected: %s\n", event.Name)
-						addDirAndSubdirsToWatcher(event.Name)
-					}
-
 					if isNewUSBDrive(event.Name) {
 						log.Println("New USB device detected:", event.Name)
 						go func() {
@@ -155,7 +146,7 @@ func watchLinuxDrives(done chan bool) {
 				if !ok {
 					return
 				}
-				log.Println("error:", err)
+				log.Println("Watcher error:", err)
 			}
 		}
 	}()

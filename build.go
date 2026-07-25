@@ -86,13 +86,10 @@ func buildForWindows(outputName, filename, currentDir string) error {
 
 func buildForOS(goos, outputName, filename string, currentDir string) error {
 	args := []string{"build", "-o", outputName}
-	hiddenOutput := filepath.Join(filepath.Dir(outputName), "ECPHidden")
-	argsHidden := []string{"build", "-ldflags=-H windowsgui", "-o", hiddenOutput}
 
 	// Add build tag to exclude Windows-specific code on Linux
 	if goos == "linux" {
 		args = append(args, "-tags", "!windows")
-		argsHidden = append(argsHidden, "-tags", "!windows")
 	}
 
 	args = append(args, filename)
@@ -109,24 +106,6 @@ func buildForOS(goos, outputName, filename string, currentDir string) error {
 	err := cmd.Run()
 	if err != nil {
 		return fmt.Errorf("build error for %s: %v", goos, err)
-	}
-
-	// Build for Linux hidden
-
-	argsHidden = append(argsHidden, filename)
-
-	cmdHidden := exec.Command("go", argsHidden...)
-	cmdHidden.Env = append(os.Environ(),
-		"GOOS="+goos,
-		"GOARCH=amd64",
-	)
-	cmdHidden.Dir = currentDir
-	cmdHidden.Stdout = os.Stdout
-	cmdHidden.Stderr = os.Stderr
-
-	errHidden := cmdHidden.Run()
-	if errHidden != nil {
-		return fmt.Errorf("build error for %s hidden: %v", goos, errHidden)
 	}
 
 	fmt.Printf("Build for %s completed.\n", goos)
