@@ -1,9 +1,6 @@
 # Evil-Copy 😈💾
 
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Go Version](https://img.shields.io/badge/Go-1.23-00ADD8?logo=go&logoColor=white)
-![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-blue?logo=windows&logoColor=white)
-![Build](https://img.shields.io/badge/Build-Passing-brightgreen)
+<p align="center"><a href="https://github.com/bI8d0/Evil-Copy"><img src="https://img.shields.io/badge/Windows%20%7C%20Linux%20%7C%20Go%201.23%20%7C%20MIT-1F6FEB?style=for-the-badge&logo=github&logoColor=white" alt="Windows | Linux | Go 1.23 | MIT"></a></p>
 
 ```
 ███████╗██╗   ██╗██╗██╗      ██████╗ ██████╗ ██████╗ ██╗   ██╗
